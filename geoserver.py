@@ -108,16 +108,16 @@ class GeoServer(SimpleHTTPRequestHandler):
         except:
             limit = limit_for_zoom(zoom)
 
-        use_polygon = zoom >= 15  # Show polygons only at high zoom
+        use_polygon = zoom >= 12  # Show polygons even at lower zoom (e.g. city level)
 
         t0 = time.time()
         conn = sqlite3.connect(DB_PATH)
         try:
             rows = conn.execute(
-                """SELECT lat, lng, area, confidence, geometry, plus_code
+                """SELECT latitude, longitude, area_in_meters, confidence, geometry
                    FROM buildings
-                   WHERE lat BETWEEN ? AND ?
-                     AND lng BETWEEN ? AND ?
+                   WHERE latitude BETWEEN ? AND ?
+                     AND longitude BETWEEN ? AND ?
                    LIMIT ?""",
                 (min_lat, max_lat, min_lng, max_lng, limit)
             ).fetchall()
@@ -126,7 +126,8 @@ class GeoServer(SimpleHTTPRequestHandler):
 
         features = []
         for row in rows:
-            lat, lng, area, conf, geom_wkt, plus = row
+            lat, lng, area, conf, geom_wkt = row
+            plus = None
 
             # Choose geometry: polygon at high zoom, point otherwise
             geometry = None

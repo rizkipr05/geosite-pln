@@ -193,24 +193,35 @@
       </div>
     </div>
 
-    <!-- RESET -->
-    <div class="section">
-      <div class="action-buttons" style="display:flex;gap:8px;">
-        <button class="btn-reset" id="btnExport"
-          style="flex:1;background:rgba(16,185,129,0.1);color:#34d399;border-color:rgba(16,185,129,0.3);">
+    <!-- AKSI & EXPORT -->
+    <div class="section" style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn-export-primary" id="btnExport" title="Export data ke file Excel (.xlsx)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>Export Excel (.xlsx)</span>
+      </button>
+
+      <div style="display:flex; gap:8px; width:100%;">
+        <button class="btn-sub-action" id="btnRecalcMatch" title="Hitung ulang titik mana yang ada di dalam bangunan">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg> Export
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span>Hitung Ulang</span>
         </button>
-        <button class="btn-reset" id="btnReset" style="flex:1;">
+
+        <button class="btn-sub-action btn-sub-danger" id="btnReset" title="Hapus data upload dari peta">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg> Hapus
+          </svg>
+          <span>Hapus</span>
         </button>
       </div>
     </div>
@@ -253,10 +264,10 @@
       </div>
       <div class="progress-text" id="progressText"></div>
     </div>
-  </main>
-
-  <!-- DETAIL POPUP -->
-  <div class="detail-panel" id="detailPanel" style="display:none;">
+    </div>
+    
+    <!-- DETAIL POPUP -->
+    <div class="detail-panel" id="detailPanel" style="display:none;">
     <div class="detail-header">
       <div class="detail-title">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -367,8 +378,7 @@
     <div class="detail-props-title">Properti</div>
     <div class="detail-body" id="detailBody" style="user-select:text;"></div>
   </div>
-
-  </div>
+  </main>
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
