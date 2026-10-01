@@ -1174,7 +1174,7 @@ function initSelectionEvents() {
     // Hitung ulang matching pada titik dan bangunan yang terlihat
     recalculatePipColors();
 
-    // Pilih titik lingkaran (data Excel) yang berada di dalam kotak seleksi
+    // Select uploaded customer points inside the box.
     state.uploadLayerGroup.eachLayer(function(l) {
       if (!(l instanceof L.CircleMarker)) return;
       var latlng = l.getLatLng();
@@ -1183,12 +1183,19 @@ function initSelectionEvents() {
         state.multiSelectedLayers.push(l);
       }
     });
+
+    // Select server buildings whose polygons intersect the selection box.
+    state.layerGroup.eachLayer(function(l) {
+      if (!(l instanceof L.Polygon) || !bounds.intersects(l.getBounds())) return;
+      l.setStyle({fillColor: "#f59e0b", color: "#ffffff", weight: 3});
+      if (state.multiSelectedLayers.indexOf(l) === -1) state.multiSelectedLayers.push(l);
+    });
     
     animateCounter(DOM.selectedCount, state.multiSelectedLayers.length);
     if (state.multiSelectedLayers.length > 0) {
       showToast(state.multiSelectedLayers.length + " data dipilih! Klik tombol hijau Export untuk mendownload data terpilih.", "success", 4000);
     } else {
-      showToast("Tidak ada data pelanggan di area seleksi", "info");
+      showToast("Tidak ada data di area seleksi", "info");
       if (selectionBox) { state.map.removeLayer(selectionBox); selectionBox = null; }
     }
     
@@ -1228,10 +1235,6 @@ if (btnExport) {
     if (typeof XLSX === "undefined") {
       showToast("Library SheetJS belum termuat. Silakan refresh.", "error"); return;
     }
-    if (!state.uploadLayerGroup || state.uploadLayerGroup.getLayers().length === 0) {
-      showToast("Upload file Excel terlebih dahulu", "error"); return;
-    }
-    
     setLoading("Menyiapkan file Excel...");
     setTimeout(function() {
       // Pastikan hitung ulang posisi bangunan terbaru
@@ -1247,7 +1250,7 @@ if (btnExport) {
         });
       }
 
-      state.uploadLayerGroup.eachLayer(function(layer) {
+      if (state.uploadLayerGroup) state.uploadLayerGroup.eachLayer(function(layer) {
         if (!(layer instanceof L.CircleMarker)) return;
         if (isSelection && !selectedSet[L.stamp(layer)]) return;
 
@@ -1303,6 +1306,31 @@ if (btnExport) {
 
         rows.push(r);
       });
+
+      // A selected server building is a valid export row even when it has no IDPEL
+      // and no uploaded customer point exists.
+      if (isSelection) {
+        state.multiSelectedLayers.forEach(function(layer) {
+          if (!(layer instanceof L.Polygon)) return;
+          var props = layer._props || {};
+          var building = getBuildingExportValues(layer);
+          var r = {};
+          Object.keys(props).forEach(function(k) {
+            if (k !== 'Status_Bangunan' && k !== 'Status_Atap' && k !== 'Jenis_Data') {
+              r[k] = props[k] === undefined || props[k] === null ? '' : props[k];
+            }
+          });
+          r['KOORDINAT_X_PELANGGAN'] = '';
+          r['KOORDINAT_Y_PELANGGAN'] = '';
+          r['KOORDINAT_X_BANGUNAN'] = toExportNumber(building.longitude !== undefined ? building.longitude : (building.center ? building.center.lng : ''));
+          r['KOORDINAT_Y_BANGUNAN'] = toExportNumber(building.latitude !== undefined ? building.latitude : (building.center ? building.center.lat : ''));
+          r['LUAS_BANGUNAN_M2'] = toExportNumber(building.area);
+          r['GEOMETRI_POLIGON_RUMAH'] = polygonToWkt(layer);
+          r['Status_Bangunan'] = 'Dalam Kotak Bangunan';
+          r['Status_Atap'] = layer._isMatched ? 'Ada Pelanggan' : 'Tidak Ada Pelanggan';
+          rows.push(r);
+        });
+      }
 
       if (rows.length === 0) {
         hideLoading();
