@@ -2,75 +2,86 @@
 
 Platform WebGIS dan Internet of Things (IoT) untuk Pemetaan Bangunan, Validasi Koordinat Pelanggan, dan Monitoring Infrastruktur PLN.
 
-GeoSite PLN IoT merupakan aplikasi pemetaan digital berbasis web yang dirancang untuk mengintegrasikan data bangunan, titik koordinat ID Pelanggan PLN, dan perangkat IoT dalam satu platform terpusat. Sistem ini mendukung visualisasi jutaan poligon bangunan, pencocokan koordinat pelanggan secara otomatis, serta pemantauan data perangkat lapangan secara real-time apabila terhubung dengan perangkat dan infrastruktur IoT yang sesuai.
+GeoSite PLN IoT adalah aplikasi pemetaan digital berbasis web yang dirancang untuk mengintegrasikan data bangunan, koordinat ID Pelanggan PLN, dan perangkat IoT dalam satu platform terpusat.
+
+Sistem ini mendukung visualisasi jutaan poligon bangunan, pencocokan koordinat pelanggan secara otomatis, serta pengembangan pemantauan perangkat lapangan secara real-time melalui integrasi IoT.
 
 Dengan menggabungkan teknologi WebGIS, Python, SQLite, Leaflet.js, dan protokol komunikasi IoT, GeoSite PLN IoT membantu meningkatkan akurasi pemetaan, efisiensi validasi data, dan kemudahan pemantauan infrastruktur kelistrikan.
 
+!GeoSite PLN UI !Python Backend !Map Engine !IoT Integration !Database
+
 ✨ Fitur Utama
 🚀 1. High-Performance Geospatial Mapping
-Dirancang untuk memvisualisasikan jutaan data poligon bangunan melalui teknik rendering bertahap (asynchronous chunk rendering).
-Optimasi pemuatan data agar penggunaan memori browser lebih efisien.
-Mendukung navigasi peta, pencarian lokasi, zoom, dan identifikasi bangunan.
+Dirancang untuk memvisualisasikan jutaan poligon bangunan menggunakan teknik asynchronous chunk rendering.
+Mengoptimalkan pemuatan data untuk mengurangi penggunaan memori browser.
+Mendukung navigasi peta, zoom, pencarian lokasi, dan identifikasi bangunan.
 Menggunakan Leaflet.js dengan OpenStreetMap sebagai peta dasar.
 🎯 2. Smart Customer Matching
 Mendukung impor data pelanggan dari file Excel (.xlsx) dan CSV.
-Mengidentifikasi bangunan berdasarkan koordinat LATITUDE dan LONGITUDE.
+Membaca koordinat pelanggan melalui kolom LATITUDE dan LONGITUDE.
 Menggunakan algoritma Point-in-Polygon untuk mencocokkan titik koordinat dengan tapak bangunan.
-Mendukung toleransi posisi GPS sekitar 15 meter yang dapat disesuaikan.
-Menyediakan hasil pencocokan untuk membantu validasi lokasi pelanggan di lapangan.
-📡 3. Integrasi Internet of Things (IoT)
-Mendukung pengembangan integrasi perangkat IoT untuk mengirimkan data koordinat, status perangkat, dan informasi sensor.
-Memungkinkan pengiriman data melalui protokol MQTT atau HTTP API.
-Menyediakan rancangan integrasi dengan gateway IoT untuk menghubungkan perangkat lapangan ke server.
-Mendukung pemantauan waktu pengiriman data terakhir, status koneksi, dan kondisi perangkat apabila data tersebut tersedia.
-Memungkinkan integrasi dengan perangkat GPS, sensor, atau perangkat monitoring infrastruktur sesuai kebutuhan operasional.
+Mendukung toleransi GPS sekitar 15 meter yang dapat disesuaikan.
+Menampilkan hasil pencocokan untuk membantu proses validasi lokasi pelanggan.
+📡 3. Internet of Things (IoT) Integration
+Mendukung pengembangan integrasi perangkat IoT untuk mengirimkan data koordinat, sensor, dan status perangkat.
+Mendukung rancangan komunikasi menggunakan protokol MQTT atau HTTP API.
+Memungkinkan integrasi perangkat GPS, sensor, dan perangkat monitoring infrastruktur.
+Menyediakan fondasi pemantauan status koneksi perangkat dan waktu pembaruan data terakhir.
+Memungkinkan pengiriman data otomatis dari perangkat lapangan menuju server.
 
-Catatan: Fitur monitoring real-time memerlukan perangkat IoT, koneksi komunikasi, serta layanan backend penerima data. Fitur tersebut tidak otomatis aktif hanya dengan menjalankan aplikasi WebGIS.
+Catatan: Fitur monitoring real-time memerlukan perangkat IoT, koneksi komunikasi, backend penerima data, dan konfigurasi tambahan. Fitur tersebut tidak otomatis aktif hanya dengan menjalankan aplikasi WebGIS.
 
-🎨 4. Visualisasi Status Bangunan dan Pelanggan
-🟪 Ungu — Bangunan Belum Teridentifikasi: Bangunan yang belum memiliki data pelanggan hasil pencocokan.
-🟦 Biru — Bangunan Teridentifikasi: Bangunan yang cocok dengan satu atau lebih titik pelanggan.
-🟩 Hijau — Koordinat Valid: Titik pelanggan yang berhasil dicocokkan dengan bangunan.
-🟥 Merah — Perlu Verifikasi: Titik pelanggan yang tidak ditemukan pada bangunan dalam batas toleransi.
-🟧 Oranye — Status Perangkat IoT Perlu Diperiksa: Status tambahan apabila tersedia data perangkat dan aturan pemantauan yang sesuai.
+🎨 4. Dynamic Color Coding
+Warna	Keterangan
+🟪 Ungu	Bangunan belum teridentifikasi memiliki data pelanggan yang cocok
+🟦 Biru	Bangunan yang cocok dengan satu atau lebih titik pelanggan
+🟩 Hijau	Titik koordinat pelanggan yang berhasil dicocokkan
+🟥 Merah	Titik koordinat yang tidak cocok atau perlu diverifikasi
+🟧 Oranye	Status perangkat IoT yang memerlukan pemeriksaan, jika integrasi tersedia
 
-Warna pada peta digunakan sebagai indikator visual untuk membantu operator mengidentifikasi kondisi data dan menentukan lokasi yang memerlukan pemeriksaan lebih lanjut.
+Visualisasi warna membantu operator mengidentifikasi kondisi data dan menentukan lokasi yang memerlukan pemeriksaan lebih lanjut.
 
 🛰️ 5. Dashboard dan Monitoring Lapangan
-Panel informasi bangunan dan data pelanggan.
-Minimap untuk membantu pemeriksaan lokasi secara lebih detail.
+Panel detail bangunan dan informasi pelanggan.
+Minimap untuk pemeriksaan lokasi secara lebih terperinci.
 Informasi koordinat geografis dan hasil pencocokan.
-Ringkasan jumlah titik valid, tidak cocok, dan bangunan teridentifikasi.
-Pengembangan dashboard status perangkat IoT, waktu pembaruan terakhir, serta riwayat pengiriman data.
-🗄️ 6. Database Lokal dan Arsitektur Mandiri
+Ringkasan jumlah titik valid, titik tidak cocok, dan bangunan teridentifikasi.
+Pengembangan dashboard monitoring perangkat IoT.
+Informasi waktu pembaruan terakhir dan riwayat data perangkat apabila tersedia.
+🗄️ 6. Database Lokal dan Server Mandiri
 Menggunakan SQLite untuk penyimpanan data lokal.
-Backend Python untuk memproses data dan menyediakan layanan aplikasi.
-Tidak memerlukan API key untuk peta dasar OpenStreetMap.
-Dapat dikembangkan menggunakan basis data spasial atau layanan penyimpanan terpisah untuk mendukung kebutuhan data berskala besar.
+Menggunakan Python sebagai backend aplikasi.
+Tidak memerlukan API key khusus untuk peta dasar OpenStreetMap.
+Dapat dikembangkan dengan basis data spasial untuk kebutuhan pemrosesan data berukuran besar.
 🛠️ Persyaratan Sistem
 
-Pastikan komputer memiliki komponen berikut:
+Sebelum menjalankan aplikasi, pastikan komputer telah memiliki:
 
 Python 3.8 atau lebih baru.
-Library Python: pandas dan openpyxl.
+Library Python pandas dan openpyxl.
 Database bangunan buildings.db.
 Browser modern seperti Google Chrome, Microsoft Edge, atau Mozilla Firefox.
-Koneksi jaringan apabila menggunakan layanan peta eksternal atau komunikasi dengan perangkat IoT.
+Koneksi internet apabila menggunakan layanan peta eksternal atau komunikasi IoT melalui jaringan.
 
 Untuk implementasi IoT, komponen tambahan yang dapat digunakan meliputi:
 
-Broker MQTT, seperti Eclipse Mosquitto.
-Gateway atau perangkat IoT yang mendukung MQTT atau HTTP.
-Backend penerima data perangkat.
-Perangkat GPS atau sensor sesuai kebutuhan pemantauan.
+MQTT broker, seperti Eclipse Mosquitto.
+Perangkat IoT atau gateway yang mendukung MQTT atau HTTP.
+Backend penerima dan pengolah data perangkat.
+Perangkat GPS atau sensor sesuai kebutuhan monitoring.
 🚀 Panduan Instalasi
-1. Unduh repository
+1. Clone Repository
+
+Unduh repository dari GitHub menggunakan perintah berikut:
+
 git clone https://github.com/rizkipr05/geosite-pln.git
 cd geosite-pln
 
-2. Siapkan database bangunan
+2. Siapkan Database Bangunan
 
-Letakkan file database bangunan pada lokasi berikut:
+Pastikan file database buildings.db tersedia dan letakkan di dalam folder data/.
+
+Struktur direktori yang diharapkan:
 
 geosite-pln/
 ├── data/
@@ -80,35 +91,43 @@ geosite-pln/
 └── ...
 
 
-Pastikan struktur tabel dan format data di dalam buildings.db sesuai dengan kebutuhan aplikasi.
+Catatan: File database bangunan tidak disertakan dalam repository karena ukurannya yang besar. Pastikan struktur tabel dan format datanya sesuai dengan kebutuhan aplikasi.
 
-3. Instal dependensi
+3. Instal Library Python
+
+Jalankan perintah berikut di terminal:
+
 python -m pip install pandas openpyxl
 
-4. Jalankan server lokal
+4. Jalankan Server
+
+Pastikan terminal berada di dalam folder project, kemudian jalankan:
+
 python geoserver.py
 
 
-Buka browser dan akses:
+Setelah server berjalan, buka browser dan akses alamat berikut:
 
 http://localhost:8080
 
+Alamat tersebut digunakan untuk mengakses aplikasi pada komputer yang menjalankan server.
 
-Alamat tersebut digunakan untuk mengakses aplikasi pada komputer yang menjalankan server. Untuk mengaksesnya dari perangkat lain, diperlukan konfigurasi jaringan dan keamanan yang sesuai.
-
-📂 Penggunaan Data Pelanggan
-Buka aplikasi GeoSite PLN IoT.
-Pilih menu Upload Excel/CSV.
-Unggah file yang memiliki kolom LATITUDE dan LONGITUDE.
-Sistem memproses titik koordinat dan mencocokkannya dengan poligon bangunan.
+📂 Panduan Penggunaan Data Pelanggan
+Buka aplikasi GeoSite PLN IoT melalui browser.
+Klik tombol Upload Excel/CSV.
+Pilih file Excel atau CSV yang berisi koordinat pelanggan.
+Pastikan file memiliki kolom LATITUDE dan LONGITUDE.
+Tunggu hingga proses pencocokan koordinat selesai.
 Periksa hasil pencocokan melalui warna bangunan dan titik koordinat.
-Pilih bangunan untuk melihat informasi pelanggan serta detail lokasi yang tersedia.
+Klik bangunan yang teridentifikasi untuk melihat detail pelanggan dan informasi lokasi yang tersedia.
 
-Toleransi GPS sekitar 15 meter merupakan parameter awal yang perlu disesuaikan dengan ketelitian data, kondisi lapangan, dan metode pencocokan. Titik yang berada dalam radius toleransi belum tentu secara fisik berada di atap bangunan, sehingga hasilnya sebaiknya diperlakukan sebagai indikasi untuk verifikasi.
+Toleransi GPS sekitar 15 meter merupakan nilai awal yang dapat disesuaikan dengan ketelitian koordinat dan kondisi lapangan. Hasil pencocokan tetap perlu diverifikasi karena titik yang berada dekat bangunan belum tentu secara fisik berada di atap bangunan tersebut.
 
 ⚙️ Konfigurasi Peta
 
-Pengaturan awal peta dapat disesuaikan melalui config.js.
+Pengaturan koordinat awal, zoom, dan warna bangunan dapat disesuaikan melalui file config.js.
+
+Contoh konfigurasi:
 
 const CONFIG = {
   DEFAULT_CENTER: {
@@ -128,38 +147,66 @@ const CONFIG = {
 };
 
 
-Nilai warna dan koordinat dapat disesuaikan dengan kebutuhan operasional.
+Keterangan:
 
-📡 Rancangan Arsitektur IoT
+DEFAULT_CENTER: menentukan koordinat awal peta.
+DEFAULT_ZOOM: menentukan tingkat zoom awal.
+BUILDING_STYLE: menentukan warna bangunan yang belum teridentifikasi.
+BUILDING_MATCHED_STYLE: menentukan warna bangunan yang cocok dengan data pelanggan.
 
-Alur integrasi sistem yang dapat dikembangkan:
+Sesuaikan konfigurasi dengan struktur kode yang digunakan dalam repository.
 
-Perangkat lapangan: GPS, sensor, atau perangkat monitoring mengumpulkan data.
-Komunikasi IoT: Data dikirim melalui MQTT atau HTTP menggunakan gateway atau koneksi jaringan yang sesuai.
-Backend IoT: Server menerima, memvalidasi, dan mengolah data perangkat.
-Penyimpanan data: Informasi perangkat dan riwayat pengiriman disimpan dalam basis data.
-Mesin geospasial: Koordinat perangkat atau pelanggan dicocokkan dengan data bangunan.
-Dashboard WebGIS: Operator melihat lokasi, status data, dan kondisi perangkat melalui peta interaktif.
+📡 Arsitektur Integrasi IoT
 
-Arsitektur ini memungkinkan pengembangan dari aplikasi pemetaan statis menjadi sistem pemantauan lapangan yang terintegrasi.
+GeoSite PLN IoT dapat dikembangkan dengan alur komunikasi sebagai berikut:
 
-🔐 Keamanan dan Keandalan
-Validasi format dan isi file sebelum data diproses.
-Autentikasi perangkat IoT sebelum menerima data.
-Gunakan TLS untuk komunikasi jaringan yang mendukungnya.
-Batasi akses ke data pelanggan dan koordinat sensitif.
-Sediakan pencatatan aktivitas serta waktu pembaruan data.
-Terapkan pemrosesan bertahap, pembatasan ukuran data, dan optimasi kueri untuk mengurangi risiko kelebihan beban.
+Perangkat Lapangan: GPS, sensor, atau perangkat monitoring mengumpulkan data.
+Komunikasi IoT: Data dikirim menggunakan MQTT atau HTTP melalui koneksi jaringan yang tersedia.
+Backend IoT: Server menerima, memvalidasi, dan memproses data perangkat.
+Database: Data koordinat, status perangkat, dan riwayat pengiriman disimpan.
+Pemrosesan Geospasial: Sistem mencocokkan koordinat dengan data bangunan.
+Dashboard WebGIS: Operator melihat lokasi, hasil pencocokan, dan status perangkat melalui peta interaktif.
+
+Arsitektur tersebut memungkinkan pengembangan dari aplikasi pemetaan berbasis data statis menjadi sistem pemantauan lapangan yang terintegrasi.
+
+🔐 Keamanan dan Keandalan Sistem
+Validasi format dan isi file sebelum pemrosesan.
+Terapkan autentikasi perangkat IoT sebelum menerima data.
+Gunakan koneksi terenkripsi seperti TLS jika didukung oleh infrastruktur.
+Batasi akses terhadap data pelanggan dan koordinat sensitif.
+Catat aktivitas sistem dan waktu pembaruan data.
+Optimalkan kueri database serta pemrosesan data bertahap.
+Terapkan pembatasan ukuran file dan validasi input untuk menjaga stabilitas server.
 🎯 Tujuan Pengembangan
 
-GeoSite PLN IoT dirancang sebagai fondasi sistem informasi geografis yang dapat dikembangkan untuk mendukung:
+GeoSite PLN IoT dikembangkan sebagai fondasi sistem informasi geografis yang mendukung:
 
 Validasi dan pemutakhiran koordinat pelanggan PLN.
 Identifikasi bangunan berdasarkan lokasi geografis.
 Monitoring perangkat IoT dan infrastruktur lapangan.
 Integrasi data spasial dengan sistem informasi operasional.
-Pengambilan keputusan berbasis data lokasi yang lebih akurat.
+Peningkatan efisiensi pemeriksaan dan verifikasi lokasi.
+Pengambilan keputusan berbasis data geografis.
+🔮 Pengembangan Selanjutnya
+
+Beberapa pengembangan yang dapat dipertimbangkan:
+
+Integrasi MQTT untuk komunikasi data perangkat secara real-time.
+Dashboard status perangkat IoT dan pemantauan konektivitas.
+Pembaruan posisi perangkat secara otomatis.
+Riwayat pergerakan dan pengiriman data perangkat.
+Notifikasi ketika perangkat tidak mengirimkan data sesuai interval yang ditentukan.
+Optimasi database untuk pemrosesan jutaan data bangunan.
+Sistem autentikasi pengguna dan pengaturan hak akses.
+
+Fitur-fitur tersebut memerlukan implementasi backend, konfigurasi database, dan integrasi perangkat yang sesuai.
+
+❤️ Penutup
+
+GeoSite PLN IoT menggabungkan teknologi WebGIS, pemrosesan data geospasial, dan konsep Internet of Things untuk mendukung pemetaan bangunan serta validasi koordinat pelanggan secara lebih terstruktur.
+
+Dengan pengembangan integrasi IoT yang tepat, platform ini berpotensi menjadi sistem pendukung monitoring infrastruktur dan pengelolaan data geografis yang lebih efisien.
 
 GeoSite PLN IoT — Satu Peta, Data Terintegrasi, Monitoring Lebih Cerdas.
 
-Dikembangkan untuk mendukung transformasi digital pemetaan dan monitoring infrastruktur berbasis IoT.
+Dibuat dengan ❤️ untuk mendukung transformasi digital pemetaan dan monitoring infrastruktur berbasis IoT.
