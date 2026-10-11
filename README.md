@@ -1,128 +1,145 @@
-# 🌍 GeoSite PLN — Sistem Pemetaan Geospasial & Ilmu Ukur Tanah (IUT)
+# 🌍 GeoSite PLN IoT — Sistem WebGIS & Monitoring Infrastruktur Cerdas
 
-Platform WebGIS interaktif berbasis kaidah **Ilmu Ukur Tanah (IUT)** dan Geodesi untuk verifikasi koordinat survei lapangan, validasi tapak bangunan (*roof footprint*), dan pemetaan aset kelistrikan PLN (Gardu Distribusi & ID Pelanggan).
+Platform WebGIS dan **Internet of Things (IoT)** untuk Pemetaan Bangunan Cerdas, Validasi Koordinat ID Pelanggan, Integrasi Telemetri Sensor, dan Monitoring Aset Kelistrikan PLN (Smart Grid & Gardu Distribusi).
 
 ---
 
 ## 📌 Daftar Isi
-- [Latar Belakang & Urgensi IUT](#-latar-belakang--urgensi-iut)
-- [Prinsip Ilmu Ukur Tanah (IUT) yang Diterapkan](#-prinsip-ilmu-ukur-tanah-iut-yang-diterapkan)
+- [Tentang GeoSite PLN IoT](#-tentang-geosite-pln-iot)
+- [Arsitektur Sistem IoT & Smart Grid](#-arsitektur-sistem-iot--smart-grid)
 - [Fitur Utama](#-fitur-utama)
-- [Skema Kodifikasi Warna Tematik](#-skema-kodifikasi-warna-tematik)
-- [Arsitektur Sistem](#-arsitektur-sistem)
+- [Skema Kodifikasi Warna Visual](#-skema-kodifikasi-warna-visual)
+- [Spesifikasi Protokol & Payload Data IoT](#-spesifikasi-protokol--payload-data-iot)
 - [Struktur Direktori](#-struktur-direktori)
-- [Persyaratan Sistem](#-persyaratan-sistem)
+- [Persyaratan Sistem & Komponen IoT](#-persyaratan-sistem--komponen-iot)
 - [Panduan Instalasi & Menjalankan](#-panduan-instalasi--menjalankan)
-- [Panduan Pengolahan Data Survei Lapangan](#-panduan-pengolahan-data-survei-lapangan)
+- [Panduan Pengolahan Data Pelanggan & Perangkat](#-panduan-pengolahan-data-pelanggan--perangkat)
 - [Konfigurasi Sistem](#-konfigurasi-sistem)
-- [Format Output & Ekspor Data](#-format-output--ekspor-data)
-- [Nilai Manfaat bagi Operasional PLN](#-nilai-manfaat-bagi-operasional-pln)
+- [Format Ekspor Data](#-format-ekspor-data)
+- [Keamanan & Skalabilitas IoT](#-keamanan--skalabilitas-iot)
+- [Roadmap Pengembangan IoT Smart Grid](#-roadmap-pengembangan-iot-smart-grid)
 
 ---
 
-## 📖 Latar Belakang & Urgensi IUT
+## 💡 Tentang GeoSite PLN IoT
 
-Dalam operasional PT PLN (Persero), pendataan koordinat geografis pelanggan dan gardu distribusi di lapangan sering kali mengandalkan survei lapangan (*ground survey*) menggunakan perangkat GPS handheld atau smartphone. Praktik pengukuran ini kerap menghadapi tantangan akurasi:
+Dalam era transformasi digital ketenagalistrikan menuju **Smart Grid** dan **AMI (Advanced Metering Infrastructure)**, integrasi perangkat pintar (*smart meters*, sensor gardu, logger GPS) menghasilkan data telemetri yang sangat masif. Namun, data telemetri numerik sering kali kehilangan nilai optimalnya jika tidak terpetakan secara presisi pada koordinat fisik bangunannya.
 
-1. **Bias & Offset GPS**: Deviasi akurasi alat GPS di lapangan berkisar antara 5 hingga 30 meter akibat *Dilution of Precision* (DOP), pantulan sinyal (*multipath*), kanopi pohon, atau kerapatan gedung.
-2. **Koordinat di Luar Tapak Fisik**: Koordinat survei sering tercatat di jalan, pekarangan, atau meleset ke bangunan tetangga, padahal instalasi kWh meter secara fisik menempel pada tapak bangunan pelanggan.
-3. **Volume Data Masif**: Verifikasi jutaan titik pelanggan secara manual memerlukan waktu dan biaya tinggi.
-
-**GeoSite PLN Berbasis IUT** memecahkan masalah ini dengan mengintegrasikan data vektor tapak bangunan riil (*building footprints*) dengan algoritma analisis spasial Ilmu Ukur Tanah secara otomatis, cepat, dan presisi.
+**GeoSite PLN IoT** hadir sebagai jembatan antara **dunia fisik (Internet of Things)** dan **analisis geospasial (WebGIS)**:
+1. **Mengintegrasikan Jutaan Tapak Bangunan (*Building Footprints*)**: Memanfaatkan data spasial poligon riil dengan teknik rendering bertahap (*chunk rendering*) yang sangat efisien.
+2. **Validasi & Penyelarasan Koordinat Sensor Lapangan**: Menghubungkan titik koordinat perangkat IoT dan ID Pelanggan dengan tapak bangunan menggunakan algoritma *Point-in-Polygon* serta toleransi offset GPS lapangan ($\pm 15 - 30\text{ m}$).
+3. **Monitoring Aset Infrastruktur Terpusat**: Memetakan persebaran aset Gardu Distribusi PLN (kapasitas kVA, penyulang, lokasi) dan status sambungan ke bangunan pelanggan.
 
 ---
 
-## 📐 Prinsip Ilmu Ukur Tanah (IUT) yang Diterapkan
+## 🏗️ Arsitektur Sistem IoT & Smart Grid
 
-Sistem ini mengimplementasikan metode dan kaidah geodesi/IUT berikut:
+Alur integrasi arsitektur sistem dari perangkat lapangan hingga visualisasi peta interaktif:
 
-### 1. Sistem Referensi Koordinat (Coordinate Reference System - CRS)
-- Menggunakan datum geodesi global **WGS 84 (EPSG:4326)** dengan format Lintang (*Latitude/Y*) dan Bujur (*Longitude/X*) bersudut desimal (*decimal degrees*).
+```mermaid
+graph TD
+    subgraph Layer Persepsi Lapangan (IoT Devices & Survey)
+        D1[Smart kWh Meter / AMI<br/>Sensor Tegangan & Arus] -->|Koneksi NBIoT/4G/LoRa| GW[IoT Gateway Lapangan]
+        D2[Sensor Gardu Distribusi<br/>kVA, Suhu Trafo, Status] -->|Modbus / Serial| GW
+        D3[Perangkat GPS Surveyor<br/>Koordinat Pelanggan Lapangan] -->|Log Excel/CSV| FS[File Survei & Aset]
+    end
 
-### 2. Pemodelan Geometri Vektor Bangunan (WKT Polygon)
-- Tapak bangunan dimodelkan dalam format geometri standar **Well-Known Text (WKT)**:
-  $$\text{POLYGON}((X_1\ Y_1, X_2\ Y_2, \dots, X_n\ Y_n, X_1\ Y_1))$$
-- Menyimpan parameter fisik bangunan: Luas Area ($m^2$), Tingkat Kepercayaan Deteksi (*Confidence*), dan *Open Location Code* (Plus Code).
+    subgraph Layer Jaringan & Komunikasi (Broker / Ingestion)
+        GW -->|Protokol MQTT / MQTTS| BRK[MQTT Broker<br/>Eclipse Mosquitto / EMQX]
+        GW -->|HTTP REST API| API[API Ingestion Gateway]
+    end
 
-### 3. Uji Topologi Spasial: Algoritma Point-in-Polygon (Ray-Casting)
-- Melakukan uji geometris apakah titik koordinat hasil survei ($X, Y$) berada tepat di dalam batas poligon tapak bangunan menggunakan metode *Ray-Casting*:
-  - Garis imajiner ditarik dari titik uji ke arah tak terhingga.
-  - Jumlah perpotongan dengan batas poligon ganjil $\rightarrow$ titik berada **di dalam tapak bangunan**.
-  - Jumlah perpotongan genap $\rightarrow$ titik berada **di luar tapak bangunan**.
+    subgraph Layer Penyimpanan & Geoserver (Backend)
+        BRK --> BE[Python Backend Processor]
+        API --> BE
+        FS -->|convert_to_db.py / convert_gardu.py| DB[(SQLite Spatial DB<br/>buildings.db & gardu.db)]
+        BE --> DB
+        DB --> GS[geoserver.py<br/>Spatial Query Engine BBox API]
+    end
 
-### 4. Toleransi Offset Pengukuran & Jarak Minimum (Point-to-Segment Distance)
-- Untuk mengakomodasi deviasi alat ukur GPS lapangan, sistem menerapkan radius toleransi spasial:
-  - Default toleransi: $\pm 30\text{ meter}$ ($\approx 0.0003^\circ$).
-  - Sistem menghitung proyeksi jarak ortogonal terpendek antara titik ukur ke setiap segmen batas poligon:
-    $$d_{\min} = \min_{j} \left( \|\mathbf{P} - \mathbf{P}_{\text{proj}, j}\| \right)$$
-  - Jika titik berada dalam radius toleransi terhadap bangunan terdekat, titik tersebut dipasangkan dengan bangunan tersebut.
-
-### 5. Normalisasi Posisi (Centroid Snapping)
-- Titik survei yang tervalidasi cocok dengan tapak bangunan dapat secara otomatis di-*snap* ke titik berat (*centroid*) tapak bangunan untuk merapikan persebaran data spasial pada peta operasional.
+    subgraph Layer Presentasi & Monitoring (WebGIS Frontend)
+        GS -->|Viewport BBox JSON| UI[WebGIS Dashboard<br/>Leaflet.js + Esri Satellite]
+        UI --> MTR[Real-time Monitoring & Inspector]
+        UI --> PIP[Point-in-Polygon Engine<br/>Customer & Device Snapping]
+        UI --> EXP[Ekspor Data Validasi .xlsx/.csv]
+    end
+```
 
 ---
 
 ## ✨ Fitur Utama
 
-- 🚀 **High-Performance Spatial Viewport (Chunk Query)**
-  - Mengambil data bangunan secara dinamis berdasarkan batas pandang (*Bounding Box* / BBOX: `minLng, minLat, maxLng, maxLat`).
-  - Penyesuaian batas fitur adaptif sesuai tingkat zoom (1.000 hingga 5.000 poligon) untuk menjaga performa rendering Leaflet pada 60 FPS tanpa kehabisan memori (*memory leak*).
-- 📑 **Dukungan Berbagai Format Survei Lapangan**
-  - Menerima file survei dalam format **Excel (.xlsx)**, **CSV**, **GeoJSON**, dan **JSON**.
-  - Fleksibel terhadap penamaan kolom koordinat: `LATITUDE`/`LONGITUDE`, `KOORDINAT_X`/`KOORDINAT_Y`, `LAT`/`LNG`.
-- ⚡ **Integrasi Data Gardu Distribusi PLN**
-  - Pengelolaan database gardu (`data/gardu.db`) yang memuat data teknis: No Gardu, Daya (kVA), Lokasi, dan Penyulang.
-- 🗺️ **Pilihan Peta Dasar (Basemap)**
-  - **OpenStreetMap**: Untuk navigasi jalan dan toponimi.
-  - **Esri World Imagery (Citra Satelit Resolusi Tinggi)**: Untuk *ground checking* visual tapak bangunan secara fotogrametri/inderaja tanpa API key berbayar.
-- 📊 **Panel Statistik & Inspeksi Geospasial**
-  - Total bangunan dalam database, jumlah bangunan terlihat (*visible*), dan objek terpilih (*selected*).
-  - Inspeksi detail koordinat, luas atap, Plus Code, status atap, dan atribut pelanggan/gardu.
-- 💾 **Ekspor Data Hasil Validasi IUT**
-  - Ekspor hasil validasi dan verifikasi kembali ke file Excel (`.xlsx`) atau CSV lengkap dengan klasifikasi status tapak bangunan.
+- 📡 **Integrasi Konsep Internet of Things (IoT)**
+  - Dirancang untuk menerima data perangkat lapangan: ID perangkat, koordinat posisi, waktu pembaruan (*timestamp*), dan telemetri daya.
+  - Kompatibel dengan model komunikasi berbasis protokol **MQTT** maupun **HTTP REST API**.
+- 🚀 **High-Performance Spatial Mapping (BBox Chunk Query)**
+  - Mampu menampilkan visualisasi ratusan ribu hingga jutaan poligon bangunan tanpa degradasi performa browser.
+  - Kueri spasial adaptif berbasis batas pandang (*Bounding Box*) dengan limit fitur dinamis per tingkat zoom (1.000 hingga 5.000 poligon).
+  - SQLite backend teroptimasi menggunakan mode *WAL (Write-Ahead Logging)* dan pengindeksan koordinat spasial.
+- 🎯 **Smart Device & Customer Matching (Point-in-Polygon)**
+  - Memverifikasi apakah koordinat perangkat IoT atau pelanggan berada tepat pada atap/tapak bangunan (*roof footprint*).
+  - Dilengkapi perhitungan toleransi deviasi posisi GPS ($\approx 30\text{ meter}$) berbasis algoritma jarak ortogonal terpendek ke segmen poligon (*point-to-segment distance*).
+  - Otomatis melakukan *centroid snapping* (menarik posisi titik ke titik pusat atap) untuk merapikan persebaran data.
+- ⚡ **Monitoring Gardu Distribusi PLN**
+  - Penyimpanan dan visualisasi data gardu distribusi terintegrasi (`gardu.db`): Nomor Gardu, Daya Trafo (kVA), Nama Penyulang, dan Titik Lokasi Fisik.
+- 🗺️ **Pilihan Lapisan Peta Dasar (Basemap Ganda)**
+  - **OpenStreetMap (OSM)**: Untuk analisis jaringan jalan dan toponimi.
+  - **Esri World Imagery (Citra Satelit)**: Untuk verifikasi visual langsung tapak atap bangunan dan lingkungan fisik perangkat tanpa perlu API key khusus.
+- 📊 **Panel Kontrol Statistik & Inspeksi Real-Time**
+  - Kartu statistik: Total bangunan tersimpan, jumlah bangunan yang sedang terlihat (*visible*), dan objek terpilih (*selected*).
+  - Panel rincian informasi bangunan: Luas atap ($m^2$), Plus Code, status perangkat terpasang, dan ID Pelanggan.
 
 ---
 
-## 🎨 Skema Kodifikasi Warna Tematik
+## 🎨 Skema Kodifikasi Warna Visual
 
-Pewarnaan tematik pada peta dirancang untuk mempermudah surveyor dan evaluator IUT dalam membedakan status objek:
+Indikator visual tematik dirancang untuk mempercepat identifikasi status koneksi perangkat dan validitas data di peta:
 
-| Simbol / Warna | Status Objek | Penjelasan Teknis IUT |
-| :--- | :--- | :--- |
-| 🟪 **Ungu** (`#6366f1`) | **Bangunan Belum Teridentifikasi** | Tapak bangunan terdata pada sistem namun belum memiliki titik survei pelanggan yang cocok. |
-| 🟦 **Biru** (`#3b82f6`) | **Bangunan Teridentifikasi** | Tapak bangunan yang memiliki satu atau lebih titik koordinat pelanggan valid di dalamnya. |
-| 🟧 **Kuning / Oranye** (`#f59e0b`) | **Objek Terpilih (*Selected*)** | Poligon bangunan yang sedang dipilih oleh operator untuk inspeksi detail koordinat dan atribut. |
-| 🟩 **Titik Hijau** (`#10b981`) | **Koordinat Valid (*In-Footprint*)** | Titik hasil survei berada tepat di dalam tapak bangunan atau dalam batas toleransi GPS. |
-| 🟥 **Titik Merah** (`#ef4444`) | **Koordinat Perlu Verifikasi (*Anomaly*)** | Titik hasil survei berada di luar bangunan (anomali pengukuran lapangan / perlu survei ulang). |
+| Indikator | Warna | Status Operasional | Deskripsi Teknis |
+| :---: | :--- | :--- | :--- |
+| 🟪 | **Ungu** (`#6366f1`) | **Bangunan Standar (Unmatched)** | Tapak bangunan belum terpasang perangkat IoT atau belum ada data pelanggan yang cocok. |
+| 🟦 | **Biru** (`#3b82f6`) | **Bangunan Aktif (Matched)** | Tapak bangunan yang memiliki satu atau lebih perangkat IoT / pelanggan valid di dalamnya. |
+| 🟧 | **Oranye** (`#f59e0b`) | **Objek Terpilih (Selected)** | Poligon bangunan atau perangkat yang sedang aktif diinspeksi oleh operator. |
+| 🟩 | **Titik Hijau** (`#10b981`) | **Perangkat / Titik Valid** | Titik koordinat berada tepat di dalam tapak bangunan atau dalam batas toleransi radius atap. |
+| 🟥 | **Titik Merah** (`#ef4444`) | **Perangkat Perlu Verifikasi** | Titik koordinat berada di luar tapak bangunan (indikasi GPS melenceng, perangkat dipindahkan, atau perlu survei ulang). |
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## 📡 Spesifikasi Protokol & Payload Data IoT
 
-```mermaid
-graph TD
-    subgraph Input Data Survei & Vektor
-        A[Dataset Poligon Bangunan<br/>CSV / WKT / GeoJSON] -->|convert_to_db.py| B[(SQLite: buildings.db<br/>Index Spatial BBox)]
-        C[Data Survei Gardu<br/>MINTA KOORDINAT GARDU.xlsx] -->|convert_gardu.py| D[(SQLite: gardu.db<br/>Index Spatial Lat/Lng)]
-        E[File Survei Pelanggan Lapangan<br/>Excel .xlsx / CSV]
-    end
+Sistem dirancang untuk mendukung integrasi data perangkat IoT menggunakan struktur JSON standar:
 
-    subgraph Backend Engine
-        B --> F[geoserver.py<br/>Python HTTP & Spatial Query API]
-        D --> F
-        F -->|API /api/buildings?bbox=...| G[API Response JSON<br/>WKT Polygon to Array]
-        F -->|API /api/stats| G
-    end
-
-    subgraph Frontend WebGIS & Analisis IUT
-        G --> H[Leaflet.js Map Canvas]
-        E -->|Upload via Browser| I[Parser SheetJS & PapaParse]
-        I --> J[IUT Spatial Matching Engine<br/>- Ray-Casting Point-in-Polygon<br/>- Distance-to-Segment ~30m<br/>- Centroid Snapping]
-        H <--> J
-        J --> K[Visualisasi Tematik & Detail Panel]
-        J -->|Export Button| L[Ekspor Hasil Validasi<br/>Excel .xlsx / CSV]
-    end
+### Contoh Payload Telemetri Perangkat IoT (MQTT / HTTP)
+```json
+{
+  "device_id": "PLN-SMART-METER-08921",
+  "customer_id": "542100876543",
+  "device_type": "AMI_METER",
+  "timestamp": 1728637200,
+  "location": {
+    "latitude": -6.214620,
+    "longitude": 106.845130,
+    "gps_accuracy_meters": 4.8
+  },
+  "measurements": {
+    "voltage_v": 221.5,
+    "current_a": 12.4,
+    "power_factor": 0.96,
+    "active_power_kw": 2.63,
+    "energy_kwh": 1420.8
+  },
+  "status": {
+    "tamper_alert": false,
+    "relay_state": "CONNECTED",
+    "signal_quality_csq": 28
+  }
+}
 ```
+
+### Topik MQTT yang Direkomendasikan
+- Publikasi Data Telemetri: `pln/iot/telemetry/{device_type}/{device_id}`
+- Status Perangkat & LWT (*Last Will & Testament*): `pln/iot/status/{device_id}`
+- Perintah Kontrol Relay / Pembacaan Jarak Jauh: `pln/iot/command/{device_id}`
 
 ---
 
@@ -130,33 +147,37 @@ graph TD
 
 ```text
 geosite-pln/
-├── data/                             # Direktori data spasial (diabaikan dari Git)
-│   ├── buildings.db                  # Database SQLite tapak bangunan (WKT & BBox)
+├── data/                             # Folder penyimpanan data lokal (diabaikan dari Git)
+│   ├── buildings.db                  # Database SQLite tapak bangunan (WKT & spatial index)
 │   ├── gardu.db                      # Database SQLite data gardu distribusi PLN
 │   ├── 2e5_buildings.csv             # Sumber dataset mentah bangunan (opsional)
-│   └── MINTA KOORDINAT GARDU.xlsx    # Data survei gardu PLN (opsional)
-├── app.js                            # Logika utama WebGIS, algoritma IUT, & rendering
-├── config.js                         # Konfigurasi koordinat peta, zoom, & styling
-├── convert_gardu.py                  # Skrip ETL Excel gardu ke SQLite
-├── convert_to_db.py                  # Skrip ETL CSV bangunan skala besar ke SQLite
+│   └── MINTA KOORDINAT GARDU.xlsx    # Data survei & gardu distribusi PLN (opsional)
+├── app.js                            # Logika WebGIS, spatial matching, dan rendering
+├── config.js                         # Konfigurasi koordinat peta, zoom level, & warna
+├── convert_gardu.py                  # Skrip konversi Excel data gardu ke SQLite
+├── convert_to_db.py                  # Skrip ETL konversi CSV jutaan bangunan ke SQLite
 ├── geoserver.py                      # Server backend Python dengan API spatial query
-├── index.html                        # Antarmuka antarmuka pengguna WebGIS
-├── style.css                         # Tata letak & styling tema gelap responsif
-├── package.json                      # Konfigurasi dependensi Node.js (SheetJS/xlsx)
-└── README.md                         # Dokumentasi proyek
+├── index.html                        # Tampilan dashboard WebGIS responsif
+├── style.css                         # Desain antarmuka modern tema gelap
+├── package.json                      # Konfigurasi dependensi modul Excel (xlsx)
+└── README.md                         # Dokumentasi lengkap sistem
 ```
 
 ---
 
-## 🛠️ Persyaratan Sistem
+## 🛠️ Persyaratan Sistem & Komponen IoT
 
+### 1. Komponen Perangkat Lunak WebGIS
 - **Python**: Versi 3.8 atau lebih baru.
-- **Library Python**:
-  - `pandas` (pemrosesan data tabular)
-  - `openpyxl` (pembacaan format Excel)
-- **Node.js** *(opsional, untuk modul xlsx lokal)*: v16+
-- **Browser**: Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari versi terbaru.
-- **Koneksi Internet**: Diperlukan untuk memuat *basemap tiles* (OpenStreetMap / Esri Satellite) dan pustaka CDN Leaflet.
+- **Pustaka Python**:
+  - `pandas` (analisis & manipulasi data tabular)
+  - `openpyxl` (pemrosesan lembar kerja Excel)
+- **Web Browser**: Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari modern.
+
+### 2. Komponen Pendukung Implementasi IoT (Opsional)
+- **MQTT Broker**: Eclipse Mosquitto, EMQX, atau HiveMQ.
+- **Perangkat Keras IoT**: ESP32, Raspberry Pi, Gateway Modbus, atau modul modem seluler (4G LTE / NB-IoT).
+- **Sensor Lapangan**: Trafo Arus (CT), Sensor Tegangan (PT), Modul GPS (NEO-6M / NEO-M8N).
 
 ---
 
@@ -175,64 +196,60 @@ python -m pip install pandas openpyxl
 
 ### 3. Persiapan Database Spasial
 
-#### A. Database Bangunan (`buildings.db`)
-Jika Anda memiliki file CSV dataset bangunan (misalnya `data/2e5_buildings.csv`), jalankan:
+#### A. Database Bangunan (`data/buildings.db`)
+Jika memiliki file dataset bangunan skala besar (misalnya `data/2e5_buildings.csv`):
 ```bash
 python convert_to_db.py
 ```
-> Skrip ini menggunakan mode *SQLite WAL* dan *batch insert* 50.000 baris untuk efisiensi penyimpanan jutaan poligon.
+> *Catatan*: Skrip ini menggunakan batching 50.000 baris dengan mode SQLite WAL untuk konversi jutaan baris data secara efisien.
 
-#### B. Database Gardu (`gardu.db`) *(Opsional)*
-Jika memiliki data Excel gardu (`data/MINTA KOORDINAT GARDU.xlsx`), jalankan:
+#### B. Database Gardu Distribusi (`data/gardu.db`)
+Jika memiliki data Excel gardu PLN (`data/MINTA KOORDINAT GARDU.xlsx`):
 ```bash
 python convert_gardu.py
 ```
 
-### 4. Jalankan GeoServer
-Jalankan server aplikasi:
+### 4. Menjalankan Server Lokal
+Jalankan server backend:
 ```bash
 python geoserver.py
 ```
-Server akan aktif pada port `8080`.
+Server akan aktif melayani request statis dan API spasial pada port `8080`.
 
-### 5. Buka Aplikasi di Browser
-Akses alamat berikut pada browser:
+### 5. Akses Dashboard WebGIS
+Buka browser dan kunjungi:
 ```text
 http://localhost:8080
 ```
 
 ---
 
-## 📂 Panduan Pengolahan Data Survei Lapangan
+## 📂 Panduan Pengolahan Data Pelanggan & Perangkat
 
-1. **Siapkan File Survei**: Pastikan file Excel (`.xlsx`) atau CSV memiliki kolom koordinat:
-   - Kolom Lintang: `LATITUDE`, `KOORDINAT_X`, atau `LAT`
-   - Kolom Bujur: `LONGITUDE`, `KOORDINAT_Y`, atau `LNG`
-   - Kolom Tambahan: `ID_PELANGGAN`, `NAMA`, `TARIF`, `DAYA`, dsb.
-2. **Unggah File**: Buka antarmuka GeoSite PLN, seret (*drag & drop*) file ke area **Dataset** pada sidebar kiri atau klik tautan **pilih file**.
-3. **Proses Pencocokan Spasial**:
-   - Sistem secara otomatis memproses koordinat dengan algoritma *Point-in-Polygon* terhadap tapak bangunan pada *viewport* aktif.
-   - Titik yang valid di atap/radius toleransi berubah menjadi **Hijau** dan tapak bangunan menjadi **Biru**.
-   - Titik yang tidak menemukan bangunan dalam radius toleransi berubah menjadi **Merah**.
-4. **Inspeksi Visual**:
-   - Ganti *basemap* ke citra satelit (**Esri Satellite**) pada panel kontrol lapisan peta untuk memverifikasi kondisi atap bangunan secara visual.
-   - Klik pada bangunan atau titik untuk melihat detail data teknis pada panel informasi.
-5. **Unduh Hasil Verifikasi**:
-   - Klik tombol **Export Data** untuk mengunduh laporan hasil klasifikasi dalam format `.xlsx`.
+1. **Format File Input**: Siapkan file survei atau log perangkat dalam format Excel (`.xlsx`), CSV, atau GeoJSON dengan kolom:
+   - Kolom Koordinat: `LATITUDE` dan `LONGITUDE` (atau `KOORDINAT_X` dan `KOORDINAT_Y`).
+   - Kolom Identitas: `ID_PELANGGAN`, `NAMA`, `TARIF`, `DAYA`, dsb.
+2. **Unggah File**: Buka antarmuka GeoSite PLN IoT, lalu seret (*drag and drop*) file ke panel **Dataset** di sidebar kiri.
+3. **Pencocokan Geospasial Otomatis**:
+   - Sistem akan memproses titik koordinat secara langsung terhadap batas poligon bangunan yang terlihat pada layar.
+   - Titik yang tepat berada di atap/radius toleransi berubah menjadi **Hijau** dan tapak bangunan menjadi **Biru**.
+   - Titik yang tidak menemukan bangunan dalam radius toleransi ditandai **Merah**.
+4. **Inspeksi Citra Satelit**: Aktifkan lapisan **Esri Satellite** untuk melakukan *ground check* visual kondisi fisik atap bangunan dan jaringan instalasi kabel.
+5. **Ekspor Hasil**: Klik tombol **Export Data** untuk mengunduh laporan hasil verifikasi geospasial dalam format `.xlsx`.
 
 ---
 
 ## ⚙️ Konfigurasi Sistem
 
-Pengaturan awal peta dapat disesuaikan pada file [`config.js`](file:///home/rizky/Documents/geosite-pln/config.js):
+Pengaturan awal peta dan visualisasi dapat disesuaikan melalui file [`config.js`](file:///home/rizky/Documents/geosite-pln/config.js):
 
 ```javascript
 const CONFIG = {
-  // Pusat peta awal (koordinat kepulauan Indonesia)
+  // Koordinat pusat peta awal (Indonesia)
   DEFAULT_CENTER: { lat: -2.5489, lng: 118.0149 },
   DEFAULT_ZOOM: 5,
 
-  // Gaya visual poligon bangunan standar (Belum Teridentifikasi)
+  // Gaya visual bangunan belum teridentifikasi
   BUILDING_STYLE: {
     fillColor: "#6366f1",
     fillOpacity: 0.45,
@@ -240,7 +257,7 @@ const CONFIG = {
     weight: 1.5,
   },
 
-  // Gaya visual bangunan yang cocok dengan titik survei
+  // Gaya visual bangunan yang cocok dengan perangkat/pelanggan
   BUILDING_MATCHED_STYLE: {
     fillColor: "#3b82f6",
     fillOpacity: 0.65,
@@ -248,7 +265,7 @@ const CONFIG = {
     weight: 2,
   },
 
-  // Gaya visual saat objek dipilih
+  // Gaya visual saat bangunan dipilih
   BUILDING_SELECTED_STYLE: {
     fillColor: "#f59e0b",
     fillOpacity: 0.7,
@@ -256,38 +273,47 @@ const CONFIG = {
     weight: 3,
   },
 
-  APP_TITLE: "GeoMap Bangunan — Analisis IUT",
+  APP_TITLE: "GeoMap Bangunan — IoT Monitoring",
 };
 ```
 
 ---
 
-## 📊 Format Output & Ekspor Data
+## 📊 Format Ekspor Data
 
-File Excel/CSV hasil ekspor menyertakan atribut geospasial hasil validasi IUT:
+Laporan hasil pemetaan yang diekspor menyertakan atribut spasial dan operasional:
 
-| Kolom Ekspor | Keterangan |
-| :--- | :--- |
-| `Status_Bangunan` | `Dalam Kotak Bangunan` (valid) atau `Di Luar Bangunan` (anomali) |
-| `Status_Atap` | `Ada Pelanggan` (terisi) atau `Tidak Ada Pelanggan` (kosong) |
-| `latitude` / `longitude` | Koordinat titik ukur hasil survei lapangan |
-| `Center_Lat` / `Center_Lng` | Koordinat titik pusat (*centroid*) poligon tapak bangunan |
-| `Luas_Bangunan_m2` | Luas tapak bangunan fisik hasil kalkulasi geometris poligon |
-| `Plus_Code` | Kode lokasi alfanumerik global (*Open Location Code*) |
-| `ID_Pelanggan` / Atribut Asal | Seluruh kolom identitas pelanggan dari file input yang diunggah |
+| Nama Kolom | Nilai / Format | Penjelasan |
+| :--- | :--- | :--- |
+| `Status_Bangunan` | `Dalam Kotak Bangunan` / `Di Luar Bangunan` | Status keberadaan perangkat terhadap tapak bangunan |
+| `Status_Atap` | `Ada Pelanggan` / `Tidak Ada Pelanggan` | Status okupansi tapak bangunan oleh ID pelanggan |
+| `latitude` / `longitude` | Desimal Derajat (WGS84) | Koordinat posisi titik perangkat / survei asli |
+| `Center_Lat` / `Center_Lng` | Desimal Derajat (WGS84) | Titik pusat (*centroid*) atap bangunan hasil *snapping* |
+| `Luas_Bangunan_m2` | Angka numerik ($m^2$) | Estimasi luas tapak atap bangunan |
+| `Plus_Code` | String alfanumerik | Kode lokasi global unik (*Open Location Code*) |
+| Atribut Pelanggan | Sesuai data input | ID Pelanggan, Tarif, Daya, No Gardu, Penyulang, dll. |
 
 ---
 
-## 💡 Nilai Manfaat bagi Operasional PLN
+## 🔐 Keamanan & Skalabilitas IoT
 
-1. **Pemutakhiran Master Data Spasial Pelanggan**: Menghilangkan koordinat "fiktif" atau melenceng di tengah jalan raya/hutan pada sistem informasi pelanggan.
-2. **Efisiensi Validasi Lapangan**: Mengurangi kebutuhan verifikasi ulang secara fisik ke lapangan berkat validasi otomatis terhadap citra tapak bangunan.
-3. **Optimalisasi Penataan Jaringan Distribusi**: Memastikan pemetaan sambungan rumah (SR) ke tiang dan gardu distribusi berbasis posisi tapak fisik bangunan yang sebenarnya.
-4. **Analisis Kerapatan Beban (*Spatial Load Density*)**: Memanfaatkan data luas atap ($m^2$) dan jumlah pelanggan per poligon untuk memproyeksikan kebutuhan kapasitas trafo gardu.
+1. **Integritas & Validasi Input**: Memfilter struktur file dan koordinat sebelum diproses guna mencegah kesalahan eksekusi.
+2. **Koneksi Terenkripsi**: Implementasi protokol MQTTS (port 8883) dan HTTPS (port 443) dengan sertifikat SSL/TLS untuk transmisi data dari lapangan.
+3. **Autentikasi Token Perangkat**: Penggunaan username/password unik atau sertifikat X.509 untuk setiap gateway perangkat IoT yang terhubung ke broker.
+4. **Optimasi Kueri Spasial**: Pembagian pembacaan data berbasis Bounding Box (BBox) untuk menjaga konsumsi memori backend dan kelancaran browser.
+
+---
+
+## 🔮 Roadmap Pengembangan IoT Smart Grid
+
+- [ ] **Koneksi Langsung MQTT Real-Time**: Integrasi WebSocket MQTT klien langsung pada antarmuka peta untuk memperbarui status daya perangkat secara *live*.
+- [ ] **Deteksi Pemadaman Otomatis (*Outage Alert*)**: Indikator alarm visual saat perangkat AMI mengirimkan sinyal pemadaman (*last-gasp signal*).
+- [ ] **Heatmap Densitas Beban Geospasial**: Peta panas konsumsi energi untuk analisis kelebihan beban (*overload*) pada gardu distribusi.
+- [ ] **Manajemen Hak Akses Berjenjang**: Sistem autentikasi pengguna berbasis role (Surveyor, Dispatcher, Engineer, Manajer Unit).
 
 ---
 
 <div align="center">
-  <b>GeoSite PLN — Presisi Pengukuran Tanah, Akurasi Data Spasial, Efisiensi Energi.</b><br/>
-  <i>Dikembangkan untuk standardisasi validasi data spasial ketenagalistrikan berbasis Ilmu Ukur Tanah (IUT).</i>
+  <b>GeoSite PLN IoT — Satu Peta, Data Terintegrasi, Monitoring Lebih Cerdas.</b><br/>
+  <i>Mendukung Transformasi Digital Pemetaan & Monitoring Infrastruktur Kelistrikan Berbasis IoT.</i>
 </div>
